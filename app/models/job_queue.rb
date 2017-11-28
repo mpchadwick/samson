@@ -41,6 +41,11 @@ class JobQueue
 
     if JobQueue.enabled
       @lock.synchronize do
+        if hit_max_concurrent_jobs?
+          puts 'mpc: Hit max concurrent jobs'
+        else
+          puts 'mpc: Didnt hit max concurrent jobs'
+        end
         if @executing[queue]
           @queue[queue] << job_execution
           false
@@ -115,6 +120,20 @@ class JobQueue
     end
 
     instrument
+  end
+
+  def hit_max_concurrent_jobs?
+    configured = ENV['MAX_CONCURRENT_JOBS'].to_i
+    if !configured
+      return false
+    end
+
+    running = @executing.length
+    @queue.each do |k, v|
+      running += v.length
+    end
+
+    return running >= configured
   end
 
   def instrument
