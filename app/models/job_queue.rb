@@ -57,7 +57,14 @@ class JobQueue
   end
 
   def debug
-    [@executing, @queue]
+    grouped = Hash.new { |h, q| h[q] = [] }
+    @queue.each do |i|
+      grouped[i[:queue]] << i[:job_execution]
+    end
+
+    puts [@executing, grouped].inspect
+
+    [@executing, grouped]
   end
 
   def clear
